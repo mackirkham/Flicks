@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 import cz.msebera.android.httpclient.Header;
+import me.mackirkham.flicks.models.Config;
 import me.mackirkham.flicks.models.Movie;
 
 public class MovieListActivity extends AppCompatActivity {
@@ -33,16 +34,14 @@ public class MovieListActivity extends AppCompatActivity {
 
     //instance fields
     AsyncHttpClient client;
-    //the base url for loading images
-    String imageBaseUrl;
-    //the poster size to use when fetching images, part of the url
-    String posterSize;
     // the list of currently playing movies
     ArrayList<Movie> movies;
     //the recycler view
     RecyclerView rvMovies;
     //the adapter wired to the recycler view
     MovieAdapter adapter;
+    //image config
+    Config config;
 
 
     @Override
@@ -116,12 +115,13 @@ public class MovieListActivity extends AppCompatActivity {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 //get the image base url
                 try {
-                    JSONObject images = response.getJSONObject("images");
-                    imageBaseUrl = images.getString("secure_base_url");
-                    JSONArray posterSizeOptions = images.getJSONArray("poster_sizes");
-                    //use the option at index 3 or w342 as a fallback
-                    posterSize = posterSizeOptions.optString(3, "w42");
-                    Log.i(TAG, String.format("Loaded configuration with imageBaseUrl %s and posterSize %s", imageBaseUrl, posterSize));
+                    config = new Config(response);
+                    Log.i(TAG,
+                            String.format("Loaded configuration with imageBaseUrl %s and posterSize %s",
+                                    config.getImageBaseUrl(),
+                                    config.getPosterSize()));
+                    //pass config to adapter
+                    adapter.setConfig(config);
 
                     //get the now playing movie list
                     getNowPlaying();
